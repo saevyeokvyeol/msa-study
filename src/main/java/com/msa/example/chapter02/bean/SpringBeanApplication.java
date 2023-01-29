@@ -1,4 +1,4 @@
-package com.msa.example.chapter02;
+package com.msa.example.chapter02.bean;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;

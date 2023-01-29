@@ -1,4 +1,4 @@
-package com.msa.example.chapter02;
+package com.msa.example.chapter02.bean;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
