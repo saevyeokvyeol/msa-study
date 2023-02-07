@@ -3,14 +3,22 @@ package com.msa.example.chapter05.controller;
 import com.msa.example.chapter05.domain.HotelRoomType;
 import com.msa.example.chapter05.util.IdGenerator;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /*
@@ -19,6 +27,9 @@ import java.util.Objects;
 * */
 @RestController
 public class HotelRoomController {
+
+    private static final String HEADER_CREATED_AT = "X-CREATED-AT";
+    private final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     /*
     * @GetMapping
@@ -54,11 +65,44 @@ public class HotelRoomController {
         return response;
     }
 
+    /*
+     * @DeleteMapping
+     * : =@RequestMapping(method = RequestMethod.DELETE)
+     *   DELETE HTTP 메소드를 사용하는 사용자 요청을 매핑하는 어노테이션
+     * */
     @DeleteMapping(path = "/hotels/{hotelId}/rooms/{roomNumber}")
     public DeleteResultResponse deleteHotelRoom(
         @PathVariable Long hotelId,
         @PathVariable String roomNumber) {
         System.out.println("Delete Request. hotelId=" + hotelId + ", roomNumber=" + roomNumber);
         return new DeleteResultResponse(Boolean.TRUE, "success");
+    }
+
+    /*
+     * @PostMapping
+     * : =@RequestMapping(method = RequestMethod.POST)
+     *   POST HTTP 메소드를 사용하는 사용자 요청을 매핑하는 어노테이션
+     * */
+    @PostMapping(path = "/hotels/{hotelId}/rooms")
+    public ResponseEntity<HotelRoomIdResponse> createHotelRoom(
+        @PathVariable Long hotelId,
+        /*
+        * @RequestBody
+        * : 클라이언트에서 전송한 요청 메시지 바디를 언마셜링해 자바 객체로 변환한 뒤 파라미터로 전달해주는 어노테이션
+        * */
+        @RequestBody HotelRoomRequest hotelRoomRequest) {
+        System.out.println(hotelRoomRequest.toString());
+
+        /*
+        * MultiValueMap 객체를 이용해 HTTP 헤더 설정
+        * */
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add(HEADER_CREATED_AT, DATE_FORMATTER.format(ZonedDateTime.now()));
+        HotelRoomIdResponse body = HotelRoomIdResponse.from(1_002_003_004L);
+
+        /*
+        * 클라이언트에서 전달한 body와 headers, 상태 코드 200 OK를 사용자에게 전달
+        * */
+        return new ResponseEntity<>(body, headers, HttpStatus.OK);
     }
 }
