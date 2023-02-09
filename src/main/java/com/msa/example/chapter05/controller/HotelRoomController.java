@@ -7,14 +7,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -104,5 +108,39 @@ public class HotelRoomController {
         * 클라이언트에서 전달한 body와 headers, 상태 코드 200 OK를 사용자에게 전달
         * */
         return new ResponseEntity<>(body, headers, HttpStatus.OK);
+    }
+
+    @PutMapping(path = "/hotels/{hotelId}/rooms/{roomNumber}")
+    public ResponseEntity<HotelRoomIdResponse> updateHotelRoomByRoomNumber(@PathVariable Long hotelId,
+                                                                           @PathVariable String roomNumber,
+                                                                           /*
+                                                                           * HotelRoomUpdateRequest 멤버 필드 중 검증 어노테이션이 사용된 필드 검사
+                                                                           * */
+                                                                           @Valid @RequestBody HotelRoomUpdateRequest hotelRoomUpdateRequest,
+                                                                           /*
+                                                                           * BindingResult 파라미터는 @Valid 어노테이션 검증 결과와 결과를 조회할 수 있는 메소드를 제공함
+                                                                           * */
+                                                                           BindingResult bindingResult) {
+        // 검증 결과에 에러가 하나라도 존재한다면
+        if (bindingResult.hasErrors()) {
+            // 검증 대상 클래스 속성의 검증 실패 정보를 변수에 저장
+            FieldError fieldError = bindingResult.getFieldError();
+            String errorMessage = new StringBuilder("validation error.")
+                .append(" field : ").append(fieldError.getField()) // 검증 실패한 속성 이름
+                .append(", code : ").append(fieldError.getCode()) // 검증 실패 코드
+                .append(", message : ").append(fieldError.getDefaultMessage()) // 검증 어노테이션의 message 속성 값 리턴
+                .toString();
+
+            System.out.println(errorMessage);
+            /*
+            * ResponseEntity.badRequest() 메소드는 400 Bad Request 상태 코드를 설정한 뒤 BodyBuilder 객체를 리턴함
+            * BodyBuilder.build() 메소드는 ResponseEntity 객체를 만들어 응답
+            * */
+            return ResponseEntity.badRequest().build();
+        }
+
+        System.out.println(hotelRoomUpdateRequest.toString());
+        HotelRoomIdResponse body = HotelRoomIdResponse.from(1_002_003_004L);
+        return ResponseEntity.ok(body);
     }
 }
