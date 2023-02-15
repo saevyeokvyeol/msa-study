@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msa.example.chapter06.controller.resolver.ClientInfoArgumentResolver;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
@@ -33,6 +34,7 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import java.util.List;
 import java.util.Locale;
 
+@Configuration
 public class WebServerConfig implements WebMvcConfigurer {
     /*
     * 사용자 요청의 URI, 파라미터, HTTP 메소드를 바탕으로 어떤 핸들러 메소드를 매핑할 지 결정하는 설정 메소드
@@ -158,7 +160,11 @@ public class WebServerConfig implements WebMvcConfigurer {
         resolvers.add(new ClientInfoArgumentResolver());
     }
 
-    /*    @Bean
+    /*
+    * 직렬화 과정에서 NON_EMPTY로 설정한 ObjectMapper 객체를 만드는 메소드
+    * @Bean, @Primary 어노테이션을 사용했기 때문에 최우선적으로 스프링 빈이 생성됨
+    * */
+    @Bean
     @Primary
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -166,11 +172,45 @@ public class WebServerConfig implements WebMvcConfigurer {
         return objectMapper;
     }
 
+    /*
+     * 헤더 값에 따라 JSON과 XML로 응답하도록 설정하는 메소드
+     * HttpMessageConverter 생성자에 ObjectMapper를 주입하지 않아도 objectMapper() 메소드에서 생성된 스프링 빈이 HttpMessageConverter에서 사용됨
+     * */
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        // JSON을 처리하는 MappingJackson2HttpMessageConverter 객체 생성해 추가
         converters.add(new MappingJackson2HttpMessageConverter());
+        // XML을 처리하는 MappingJackson2XmlHttpMessageConverter 객체 생성해 추가
         converters.add(new MappingJackson2XmlHttpMessageConverter());
     }
+
+    /*
+    * 인코딩 처리용 메소드
+    * */
+    @Bean
+    public FilterRegistrationBean<CharacterEncodingFilter> defaultCharacterEncodingFilter() {
+        CharacterEncodingFilter encodingFilter = new CharacterEncodingFilter();
+
+        // 기본 문자셋을 UTF-8로 설정
+        encodingFilter.setEncoding("utf-8");
+        // 요청 메시지와 응답 메시지 모두 설정된 문자셋으로 인코딩함
+        encodingFilter.setForceEncoding(true);
+
+        FilterRegistrationBean<CharacterEncodingFilter> filterBean = new FilterRegistrationBean<>();
+        // FilterRegistrationBean에 CharacterEncodingFilter 서블릿 필터 객체를 세팅
+        filterBean.setFilter(encodingFilter);
+        // 초기 파라미터 설정
+        // 파라미터 이름과 값을 넣으면 Filter의 init() 메소드 파라미터인 FilterConfig 객체에서 사용 가능
+        filterBean.addInitParameter("paramName", "paramValue");
+        // 필터를 적용할 URL 패턴 설정
+        filterBean.addUrlPatterns("*");
+        // 두 개 이상의 서블릿 필터를 설정할 떄 실행 순서 설정
+        // 값이 작을수록 먼저 실행됨
+        filterBean.setOrder(1);
+        return filterBean;
+    }
+
+    /*
 
     @Bean(value = "localeResolver")
     public LocaleResolver localeResolver() {
@@ -196,19 +236,5 @@ public class WebServerConfig implements WebMvcConfigurer {
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(new ClientInfoArgumentResolver());
-    }
-
-    @Bean
-    public FilterRegistrationBean<CharacterEncodingFilter> defaultCharacterEncodingFilter() {
-        CharacterEncodingFilter encodingFilter = new CharacterEncodingFilter();
-        encodingFilter.setEncoding("utf-8");
-        encodingFilter.setForceEncoding(true);
-
-        FilterRegistrationBean<CharacterEncodingFilter> filterBean = new FilterRegistrationBean<>();
-        filterBean.setFilter(encodingFilter);
-        filterBean.addInitParameter("paramName", "paramValue");
-        filterBean.addUrlPatterns("*");
-        filterBean.setOrder(1);
-        return filterBean;
     }*/
 }
