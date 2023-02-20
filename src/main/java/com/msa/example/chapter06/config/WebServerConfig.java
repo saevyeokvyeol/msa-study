@@ -211,22 +211,40 @@ public class WebServerConfig implements WebMvcConfigurer {
     }
 
     /*
-
+    * 다국어 처리를 위해 웹 요청에서 Locale을 추출하는 메소드
+    * AcceptHeaderLocaleResolver: 웹 브라우저가 전송한 Accept-Langguage 헤더에서 Locale 정보를 가져옴
+    * CookieLocaleResolver: 쿠키에서 Locale 정보를 가져옴
+    *                       setLocale() 메소드로 쿠키에 Locale 정보 저장 가능
+    * SessionLocaleResolver: 세션에서 Locale 정보를 가져옴
+     *                       setLocale() 메소드로 쿠키에 Locale 정보 저장 가능
+    * FixedLocaleResolver: 웹 요청에 상관없이 특정한 Locale을 설정함
+    * */
     @Bean(value = "localeResolver")
     public LocaleResolver localeResolver() {
         AcceptHeaderLocaleResolver acceptHeaderLocaleResolver = new AcceptHeaderLocaleResolver();
+        // Locale 객체를 생성할 수 없을 때 사용할 기본 언어 설정
         acceptHeaderLocaleResolver.setDefaultLocale(Locale.KOREAN);
         return acceptHeaderLocaleResolver;
     }
 
+    /*
+    *
+    * */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
+        /*
+        * 클라이언트가 웹 서버에 리소스를 전달할 때 Accept-Langguage 헤더가 아닌 파라미터로 Locale 값을 변경하고 싶을 때 사용
+        * setParamName() 메소드 파라미터 == Locale을 담는 파라미터명
+        * Ex) /hotels?locale=ko
+        * */
         localeChangeInterceptor.setParamName("locale");
         registry.addInterceptor(localeChangeInterceptor)
             .excludePathPatterns("/favicon.ico")
             .addPathPatterns("/**");
     }
+
+    /*
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
