@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <!--
+        logger 설정
+        o.s.beans.factory 패키지에 포함된 클래스에서 발생하는 모든 로그 메시지 중 warn 레벨 이상만 로깅
+     -->
+    <logger name="org.springframework.beans.factory" level="warn"/>
+
+    <!-- springProfile 엘리먼트 하위에 포함된 설정은 스프링 프로파일이 springProfile name 속성과 일치하면 활설화됨 -->
+    <springProfile name="local">
+        <!--
+            appender 이름은 STDOUT
+                     구현체는 LogBack에서 제공하는 ConsoleAppender
+            콘솔에 로그를 출력하는 기능을 제공
+        -->
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <!-- 로그 메시지를 어떤 형태로 출력할 지 패턴 값을 참고해 인코딩 -->
+            <encoder>
+                <pattern>%d{yyyy/MM/dd HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <!-- 어플리케이션에서 발생하는 모든 로그 메시지 중 info 레벨 이상만 로깅하는 설정 -->
+        <root level="info">
+            <!-- 모든 로그 메시지를 STDOUT appender로 전달해 그 결과를 콘솔에 출력하는 설정 -->
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="dev">
+        <!--
+            RollingFileAppender: 로그 파일을 정해진 규칙에 따라 롤링해 일정 량의 로그를 유지
+            systemLogAppender에 RollingFileAppender 설정
+        -->
+        <appender name="systemLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <!-- TimeBasedRollingPolicy: 시간 설정에 따라 로그 파일 롤링 -->
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- RollingFileAppender에서 저장하는 파일 경로와 이름 패턴 설정 -->
+                <fileNamePattern>${LOG_PATH}/system-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <!-- 설정한 크기에 따라 로그 파일을 분리하는 설정 -->
+                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>100MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
+                <!--
+                    설정한 날짜만큼 로그 파일을 보관
+                    설정한 날짜가 지나면 로그 파일 삭제
+                -->
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="info">
+            <appender-ref ref="systemLogAppender"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="production">
+        <appender name="systemLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/system-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <timeBasedFileNamingAndTriggeringPolicy
+                        class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>100MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="warn">
+            <appender-ref ref="systemLogAppender"/>
+        </root>
+    </springProfile>
+</configuration>
+
+<!--
+
+로그 메시지 패턴에서 사용할 수 있는 키워드 목록
+
+%logger{length}: Logger 이름 출력, length 길이에 맞춰 이름 축약
+%-5level: 로그 레벨을 5글자로 고정해 출력
+%msg: 로그 메시지 출력
+%d{HH:mm:ss.SSS}: 로그가 발생한 시점의 시간 출력
+                  중괄호로 시간 포맷 설정 가능
+%M: 로그가 발생한 메소드 이름 출력
+%thread: 로그가 발생한 스레드 이름 출력
+%C: 로그가 발생한 클래스 이름 출력
+%n: 줄바꿈
+
+-->
