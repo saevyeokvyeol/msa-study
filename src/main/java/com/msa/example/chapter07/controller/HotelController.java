@@ -14,7 +14,6 @@ import java.util.List;
 @Slf4j
 @Controller
 public class HotelController {
-
     private HotelDisplayService hotelDisplayService;
 
     public HotelController(HotelDisplayService hotelDisplayService) {
