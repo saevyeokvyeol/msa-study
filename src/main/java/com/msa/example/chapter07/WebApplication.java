@@ -8,6 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class WebApplication {
     public static void main(String[] args) {
-        SpringApplication.run(WebApplication.class);
+         SpringApplication.run(WebApplication.class);
     }
 }
